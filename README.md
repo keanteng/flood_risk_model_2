@@ -19,6 +19,30 @@ Moreover, to calculate the nearest river distance from the random coordinates, t
 
 K-means clustering was used to create 15 clusters class based on the latitude and the longitude of each coordinate. 
 
-**Workflow**
+As a bonus to this study, [SHAP](https://shap.readthedocs.io/en/latest/index.html) or `SHapley Additive exPlanations` was used to break down a prediction to show the impact of each feature. 
+
+## Computing Flood Risk
+A flood risk study is also conducted to compute the flood risk for the locations using the formula from [Development of Flood Risk Vulnerability Index for Critical Infrastructure in Malaysia](https://www.cidb.gov.my/wp-content/uploads/2022/11/Dev.-of-Flood-Risk-FVI-for-CI.pdf). The formulation is as follows:
+
+```
+R = \sum(1/i * D)
+```
+
+The `R` is the flood risk, the `i` is the flood return interval and the `D` is the damage factor. The flood risk will be a score output with range varying from 0 to more than 20000 depending on the area of interest. The flood risk can then be put into a class:
+
+| Range | Class|
+|-------|------|
+| < 50  | Very low risk|
+| 51 -1000 | Low risk |
+|1001-5000| Medium risk|
+|5001-25000| High risk |
+| >25000| Very high risk|
+
+## Workflow
+<img src="FRM2.png"  class = "center"/>
+<p style="text-align: center; color:grey;"><i>Project Workflows</i></p>
+
+## References
+1. Jati, M. I. H., Suroso, S., & Santoso, P. B. (2019). Prediction of flood areas using the logistic regression method (case study of the provinces Banten, DKI Jakarta, and West Java). Journal of Physics, 1367(1), 012087. https://doi.org/10.1088/1742-6596/1367/1/012087
 
 Internship Project © 2023
