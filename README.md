@@ -1,4 +1,9 @@
 # Flood Risk Model 2
+
+![Static Badge](https://img.shields.io/badge/license-MIT-blue)
+![Static Badge](https://img.shields.io/badge/python-3.11-blue)
+
+
 For the second version of the flood risk model, more variables are included in the study compared to the previous [one](https://github.com/keanteng/flood_risk_model/tree/main). In this study, about 19, 000 labelled random coordinates were used where each coordinate is classified either has flood risk or has no flood risk. 
 
 ```
