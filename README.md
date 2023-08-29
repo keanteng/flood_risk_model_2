@@ -1,9 +1,19 @@
-# Flood Risk Model 2
+# Flood Risk Model 2 <!-- omit in toc -->
 
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
 ![Static Badge](https://img.shields.io/badge/python-3.11-blue)
 
 A flood risk model using logistic regression to predict flood risk for any location in Malaysia. The flood data is collected from the annual report published by the Department of Irrigation and Drainage from 2020-2021. The model is trained on 19,000 labelled random geo-coordinates in Malaysia.
+
+**Table of Contents:**
+
+- [Objective](#objective)
+- [Methodology](#methodology)
+  - [Data Collection](#data-collection)
+- [Computing Flood Risk](#computing-flood-risk)
+- [Limitation](#limitation)
+- [Workflow](#workflow)
+- [References](#references)
 
 ## Objective
 - To predict food risk for any location in Malaysia
@@ -69,13 +79,13 @@ mean_duration = 2.83
 
 The flood risk will be a score output with range varying from 0 to more than 20000 depending on the area of interest. The flood risk can then be put into a class, as follows:
 
-| Range | Class|
-|-------|------|
-| < 50  | Very low risk|
-| 51 -1000 | Low risk |
-|1001-5000| Medium risk|
-|5001-25000| High risk |
-| >25000| Very high risk|
+| Range      | Class          |
+| ---------- | -------------- |
+| < 50       | Very low risk  |
+| 51 -1000   | Low risk       |
+| 1001-5000  | Medium risk    |
+| 5001-25000 | High risk      |
+| >25000     | Very high risk |
 
 ## Limitation
 It was noticed that the logistic regression model prediction depend mainly on the distance to the historical flood point. This caused other feature to have minimal impact on the model. This was due to the assumption that all the flood area of coverage was the same. Further data collection was needed in this area.
