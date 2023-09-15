@@ -5,3 +5,4 @@ geopy
 leafmap
 geemap
 ee
+openpyxl
