@@ -1,7 +1,8 @@
 # Flood Risk Model 2 <!-- omit in toc -->
 
 ![Static Badge](https://img.shields.io/badge/license-MIT-blue)
-![Static Badge](https://img.shields.io/badge/python-3.11-blue)[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://floodriskmodel2-c36p78app2rmrzmzmqkgqqk.streamlit.app/)
+![Static Badge](https://img.shields.io/badge/python-3.11-blue)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://floodriskmodel2-c36p78app2rmrzmzmqkgqqk.streamlit.app/)
 
 A flood risk model using logistic regression to predict flood risk for any location in Malaysia. The flood data is collected from the annual report published by the Department of Irrigation and Drainage from 2020-2021. The model is trained on 19,000 labelled random geo-coordinates in Malaysia.
 
