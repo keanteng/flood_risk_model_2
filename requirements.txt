@@ -1,0 +1,7 @@
+streamlit
+pandas
+geopandas
+geopy
+leafmap
+geemap
+ee
