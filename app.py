@@ -105,7 +105,7 @@ if prompt:
     response = f"Hi there, your address of interest is: {your_address} and your cluster code is: {your_cluster}"
     
     # Display assistant response in chat message container
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar = "images/favicon.png"):
         st.markdown(response)
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
@@ -322,7 +322,7 @@ if prompt:
         data[['latitude', 'longitude']] = data.apply(lambda x: my_geocoder(x['Location']), axis=1)
         
         if data['latitude'][0] == None:
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar = "images/favicon.png"):
                 st.error("Please enter a new address. The address you entered is not valid.")
         else:
             data = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data.longitude, data.latitude))
@@ -349,7 +349,7 @@ if prompt:
             flood_risk_x = -3.04993633e+01 * scale_dist_to_hist + -8.08219098e-02 * scale_location_elevation + -4.23774005e-02 * scale_location_slope + -1.96876083e-01 * scale_dist_to_river + -2.85777681e-02 * landcover_label + -3.96249614e-02 * scale_dist_to_town + -2.54932137e-02 * your_cluster + -13.29790589
             flood_risk = 1/(1 + math.exp(flood_risk_x))
             
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar = "images/favicon.png"):
                 st.write("Hi there, the flood risk for your location is: ", flood_risk)
                 st.write("According to Earth Engine, you location elevation is ", location_elevation, "meters. The slope is ", location_slope, "degrees. I notice that your location is ", landcover_description, "area.")
                 st.write("From you location, the distance to the nearest flood point is ", dist_to_hist['distance'][0], "meters. The distance to the nearest river is ", dist_to_river['distance'][0], "meters. The distance to the nearest town is ", dist_to_town['distance'][0], "meters.")
