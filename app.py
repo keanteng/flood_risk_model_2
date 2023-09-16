@@ -30,8 +30,11 @@ st.sidebar.info(
 st.title("🚀Flood Risk Prediction Engine")
 
 st.markdown("""
+            ### 🗣️ Chat With Me To Predict Your Flood Risk 
             This is a flood risk prediction service that predicts the flood risk of a location in Malaysia. The result is not 100% accurate and should not be used as a basis for any decision making. 
             The result is only for reference purposes.
+            
+            The application is designed to look like an interactive chatbot.
             
             **📌Location Cluster Code**
             """)
@@ -78,9 +81,41 @@ st.markdown("""
             
             """)
 
-your_address = st.text_input("Enter your address of interest here:")
-your_cluster = st.selectbox("Select your location cluster:", (1,2,3,4,5,6,7,8,9,10,11,12,13,14))
-submitted = st.button("Submit For Prediction")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+prompt = st.chat_input("Enter your address of interest and cluster code here:")
+
+if prompt:
+    # assign variables
+    your_cluster = prompt.split(",")[-1]
+    your_address = prompt.split(",")[0]
+    your_cluster = int(your_cluster)
+    
+    # Display user message in chat message container
+    st.chat_message("user").markdown(prompt)
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    response = f"Hi there, your address of interest is: {your_address} and your cluster code is: {your_cluster}"
+    
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
+    
+# submitted = st.button("Submit For Prediction")
+
+
+# your_cluster = st.selectbox("Select your location cluster:", (1,2,3,4,5,6,7,8,9,10,11,12,13,14))
+
 
 #####################################
 # geocoding function
@@ -274,7 +309,11 @@ def get_landcover_label(landcover):
 #####################################
 # computation output
 
-if submitted:
+if prompt:
+    your_cluster = prompt.split(",")[-1]
+    your_address = prompt.split(",")[0]
+    your_cluster = int(your_cluster)
+    
     with st.spinner("Computing ... Please Wait ..."):
         ee_authenticate(token_name="EARTHENGINE_TOKEN")
         
@@ -283,7 +322,8 @@ if submitted:
         data[['latitude', 'longitude']] = data.apply(lambda x: my_geocoder(x['Location']), axis=1)
         
         if data['latitude'][0] == None:
-            st.error("Please enter a new address. The address you entered is not valid.")
+            with st.chat_message("assistant"):
+                st.error("Please enter a new address. The address you entered is not valid.")
         else:
             data = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data.longitude, data.latitude))
             data.crs = {'init': 'epsg:4326'}
@@ -309,33 +349,34 @@ if submitted:
             flood_risk_x = -3.04993633e+01 * scale_dist_to_hist + -8.08219098e-02 * scale_location_elevation + -4.23774005e-02 * scale_location_slope + -1.96876083e-01 * scale_dist_to_river + -2.85777681e-02 * landcover_label + -3.96249614e-02 * scale_dist_to_town + -2.54932137e-02 * your_cluster + -13.29790589
             flood_risk = 1/(1 + math.exp(flood_risk_x))
             
-            st.write("Hi there, the flood risk for your location is: ", flood_risk)
-            st.write("According to Earth Engine, you location elevation is ", location_elevation, "meters. The slope is ", location_slope, "degrees. I notice that your location is ", landcover_description, "area.")
-            st.write("From you location, the distance to the nearest flood point is ", dist_to_hist['distance'][0], "meters. The distance to the nearest river is ", dist_to_river['distance'][0], "meters. The distance to the nearest town is ", dist_to_town['distance'][0], "meters.")
+            with st.chat_message("assistant"):
+                st.write("Hi there, the flood risk for your location is: ", flood_risk)
+                st.write("According to Earth Engine, you location elevation is ", location_elevation, "meters. The slope is ", location_slope, "degrees. I notice that your location is ", landcover_description, "area.")
+                st.write("From you location, the distance to the nearest flood point is ", dist_to_hist['distance'][0], "meters. The distance to the nearest river is ", dist_to_river['distance'][0], "meters. The distance to the nearest town is ", dist_to_town['distance'][0], "meters.")
             
-            if flood_risk < 0.5:
-                st.markdown("Your location is at a low risk of flooding.")
-            else:
-                st.markdown("Your location is at a high risk of flooding. Please be careful and take precautions.")
+                if flood_risk < 0.5:
+                    st.markdown("Your location is at a low risk of flooding.")
+                else:
+                    st.markdown("Your location is at a high risk of flooding. Please be careful and take precautions.")
             
-            # tranforming data
-            df1 = dist_to_hist[['kawasan_banjir', 'latitude_kb', 'longitude_kb']]
-            df2 = dist_to_town[['town', 'latitude_tw', 'longitude_tw']]
-            df1.columns = ['Location', 'latitude', 'longitude']
-            df2.columns = ['Location', 'latitude', 'longitude']
-            data = pd.concat([data, df1])
-            data = pd.concat([data, df2])
-            data['Remarks'] = ['Your Location', 'Nearest Flood Point', 'Nearest Town']
-            
-            # plot the map
-            with st.expander("Further Analysis", expanded=True):
-                m = leafmap.Map(center=[3, 101], zoom=6, google_map="HYBRID")
-                regions = 'data/river_polygon.geojson'
-                m.add_geojson(regions, layer_name="Waterways")
-                m.add_points_from_xy(
-                    data, 
-                    x="longitude", 
-                    y="latitude",
-                    icon_names=['gear', 'map', 'leaf', 'globe'],
-                )
-                m.to_streamlit(height = 700)
+                # tranforming data
+                df1 = dist_to_hist[['kawasan_banjir', 'latitude_kb', 'longitude_kb']]
+                df2 = dist_to_town[['town', 'latitude_tw', 'longitude_tw']]
+                df1.columns = ['Location', 'latitude', 'longitude']
+                df2.columns = ['Location', 'latitude', 'longitude']
+                data = pd.concat([data, df1])
+                data = pd.concat([data, df2])
+                data['Remarks'] = ['Your Location', 'Nearest Flood Point', 'Nearest Town']
+                
+                # plot the map
+                with st.expander("Further Analysis", expanded=True):
+                    m = leafmap.Map(center=[3, 101], zoom=6, google_map="HYBRID")
+                    regions = 'data/river_polygon.geojson'
+                    m.add_geojson(regions, layer_name="Waterways")
+                    m.add_points_from_xy(
+                        data, 
+                        x="longitude", 
+                        y="latitude",
+                        icon_names=['gear', 'map', 'leaf', 'globe'],
+                    )
+                    m.to_streamlit(height = 700)
