@@ -329,7 +329,9 @@ if submitted:
             
             # plot the map
             with st.expander("Further Analysis", expanded=True):
-                m = leafmap.Map(center=[4, 108], zoom=6, google_map="HYBRID")
+                m = leafmap.Map(center=[3, 101], zoom=6, google_map="HYBRID")
+                regions = 'data/river_polygon.geojson'
+                m.add_geojson(regions, layer_name="Waterways")
                 m.add_points_from_xy(
                     data, 
                     x="longitude", 
