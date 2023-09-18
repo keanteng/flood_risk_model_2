@@ -7,6 +7,7 @@ import leafmap.foliumap as leafmap
 import geemap
 import math
 import ee
+import time
 
 st.set_page_config(layout="wide")
 
@@ -62,7 +63,7 @@ with col2:
             | 1 | Sabah (Tawau) |
             | 14 | Labuan | 
             | 6 | Sabah 
-            | 3 | Sarwak (Kuching) |
+            | 3 | Sarawak (Kuching) |
                 """)
     
 with col3:
@@ -102,7 +103,7 @@ if prompt:
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    response = f"Hi there, your address of interest is: {your_address} and your cluster code is: {your_cluster}"
+    response = f"Hi, based on your request your address of interest is: {your_address} and your cluster code is: {your_cluster}"
     
     # Display assistant response in chat message container
     with st.chat_message("assistant", avatar = "images/favicon.png"):
@@ -314,51 +315,55 @@ if prompt:
     your_address = prompt.split(",")[0]
     your_cluster = int(your_cluster)
     
-    with st.spinner("Computing ... Please Wait ..."):
-        ee_authenticate(token_name="EARTHENGINE_TOKEN")
-        
-        data = pd.DataFrame({'Location': [your_address],})
-        geolocator = Nominatim(user_agent="u2004763@siswa.um.edu.my")
-        data[['latitude', 'longitude']] = data.apply(lambda x: my_geocoder(x['Location']), axis=1)
-        
-        if data['latitude'][0] == None:
-            with st.chat_message("assistant", avatar = "images/favicon.png"):
-                st.error("Please enter a new address. The address you entered is not valid.")
-        else:
-            data = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data.longitude, data.latitude))
-            data.crs = {'init': 'epsg:4326'}
+    with st.chat_message("assistant", avatar="images/favicon.png"):
+        st.write("Hang tight, I'm working on it...")
+        with st.status(label="Computing ... Please Wait ...", expanded=True, state="running") as status:
+            st.write("🔑Authenticating Earth Engine API...")
+            ee_authenticate(token_name="EARTHENGINE_TOKEN")
+            time.sleep(1)
             
-            # getting the variables
-            dist_to_hist = distance_to_nearest_flood_point(data)
-            dist_to_river = distance_to_river(data) 
-            dist_to_town = distance_to_town(data)
-            location_elevation = get_elevation(data) 
-            location_slope = get_slope(data)
-            location_landcover = get_landcover(data)
+            st.write("🔑Establishing Nominatim API...")
+            data = pd.DataFrame({'Location': [your_address],})
+            geolocator = Nominatim(user_agent="u2004763@siswa.um.edu.my")
+            data[['latitude', 'longitude']] = data.apply(lambda x: my_geocoder(x['Location']), axis=1)
+            time.sleep(1)
             
-            scale_dist_to_hist = (dist_to_hist['distance'][0]- 2683.402344024774)/3513.597864
-            scale_dist_to_river = (dist_to_river['distance'][0] - 2022.250156510475)/2076.7445583475537
-            scale_dist_to_town = (dist_to_town['distance'][0] - 16447.459432970976)/12995.05773734854
-            scale_location_elevation = (location_elevation - 56.8942191283293)/ 38.0
-            scale_location_slope = (location_slope - 5.435003841785432)/5.896303206682205
-            
-            landcover_label = get_landcover_label(location_landcover)
-            landcover_description = get_landcover_description(location_landcover)
-            
-            # computing the flood risk
-            flood_risk_x = -3.04993633e+01 * scale_dist_to_hist + -8.08219098e-02 * scale_location_elevation + -4.23774005e-02 * scale_location_slope + -1.96876083e-01 * scale_dist_to_river + -2.85777681e-02 * landcover_label + -3.96249614e-02 * scale_dist_to_town + -2.54932137e-02 * your_cluster + -13.29790589
-            flood_risk = 1/(1 + math.exp(flood_risk_x))
-            
-            with st.chat_message("assistant", avatar = "images/favicon.png"):
-                st.write("Hi there, the flood risk for your location is: ", flood_risk)
-                st.write("According to Earth Engine, you location elevation is ", location_elevation, "meters. The slope is ", location_slope, "degrees. I notice that your location is ", landcover_description, "area.")
-                st.write("From you location, the distance to the nearest flood point is ", dist_to_hist['distance'][0], "meters. The distance to the nearest river is ", dist_to_river['distance'][0], "meters. The distance to the nearest town is ", dist_to_town['distance'][0], "meters.")
-            
-                if flood_risk < 0.5:
-                    st.markdown("Your location is at a low risk of flooding.")
-                else:
-                    st.markdown("Your location is at a high risk of flooding. Please be careful and take precautions.")
-            
+            if data['latitude'][0] == None:
+                    st.error("Please enter a new address. The address you entered is not valid.")
+            else:
+                data = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data.longitude, data.latitude))
+                data.crs = {'init': 'epsg:4326'}
+                
+                # getting the variables
+                st.write("🌊Finding nearest flood point...")
+                dist_to_hist = distance_to_nearest_flood_point(data)
+                st.write("💦Finding nearest river...")
+                dist_to_river = distance_to_river(data) 
+                st.write("🗼Finding nearest town...")
+                dist_to_town = distance_to_town(data)
+                st.write("🌍Connecting Earth Engine...")
+                st.write("🌍Computing elevation...")
+                location_elevation = get_elevation(data) 
+                st.write("🌍Computing slope...")
+                location_slope = get_slope(data)
+                st.write("🌍Computing land cover...")
+                location_landcover = get_landcover(data)
+                
+                scale_dist_to_hist = (dist_to_hist['distance'][0]- 2683.402344024774)/3513.597864
+                scale_dist_to_river = (dist_to_river['distance'][0] - 2022.250156510475)/2076.7445583475537
+                scale_dist_to_town = (dist_to_town['distance'][0] - 16447.459432970976)/12995.05773734854
+                scale_location_elevation = (location_elevation - 56.8942191283293)/ 38.0
+                scale_location_slope = (location_slope - 5.435003841785432)/5.896303206682205
+                
+                landcover_label = get_landcover_label(location_landcover)
+                landcover_description = get_landcover_description(location_landcover)
+                
+                # computing the flood risk
+                st.write("📊Computing flood risk...")
+                flood_risk_x = -3.04993633e+01 * scale_dist_to_hist + -8.08219098e-02 * scale_location_elevation + -4.23774005e-02 * scale_location_slope + -1.96876083e-01 * scale_dist_to_river + -2.85777681e-02 * landcover_label + -3.96249614e-02 * scale_dist_to_town + -2.54932137e-02 * your_cluster + -13.29790589
+                flood_risk = 1/(1 + math.exp(flood_risk_x))
+                time.sleep(1)
+                
                 # tranforming data
                 df1 = dist_to_hist[['kawasan_banjir', 'latitude_kb', 'longitude_kb']]
                 df2 = dist_to_town[['town', 'latitude_tw', 'longitude_tw']]
@@ -368,15 +373,34 @@ if prompt:
                 data = pd.concat([data, df2])
                 data['Remarks'] = ['Your Location', 'Nearest Flood Point', 'Nearest Town']
                 
-                # plot the map
-                with st.expander("Further Analysis", expanded=True):
-                    m = leafmap.Map(center=[3, 101], zoom=6, google_map="HYBRID")
-                    regions = 'data/river_polygon.geojson'
-                    m.add_geojson(regions, layer_name="Waterways")
-                    m.add_points_from_xy(
-                        data, 
-                        x="longitude", 
-                        y="latitude",
-                        icon_names=['gear', 'map', 'leaf', 'globe'],
-                    )
-                    m.to_streamlit(height = 700)
+                # map production
+                st.write("🗺️Generating Map...")
+                m = leafmap.Map(center=[3, 101], zoom=6, google_map="HYBRID")
+                regions = 'data/river_polygon.geojson'
+                m.add_geojson(regions, layer_name="Waterways")
+                m.add_points_from_xy(
+                    data, 
+                    x="longitude", 
+                    y="latitude",
+                    icon_names=['gear', 'map', 'leaf', 'globe'],
+                )
+                
+                st.write("✅Done computation")
+                time.sleep(1)
+                status.update(label="Computation Done!")
+                status.update(expanded=False)
+        st.write("The computation is completed, here are the analysis:")
+            
+        st.markdown("""## Flood Risk Analysis""")
+        st.write("Here is the flood risk for your location: ", flood_risk)
+        st.write("According to Earth Engine, you location elevation is ", location_elevation, "meters. The slope is ", location_slope, "degrees. I notice that your location is ", landcover_description, "area.")
+        st.write("From you location, the distance to the nearest flood point is ", dist_to_hist['distance'][0], "meters. The distance to the nearest river is ", dist_to_river['distance'][0], "meters. The distance to the nearest town is ", dist_to_town['distance'][0], "meters.")
+    
+        if flood_risk < 0.5:
+            st.write("Your location is at a low risk of flooding.")
+        else:
+            st.write("Your location is at a high risk of flooding. Please be careful and take precautions.")
+        
+        # plot the map
+        with st.expander("Further Analysis", expanded=True):
+            m.to_streamlit(height = 700)
